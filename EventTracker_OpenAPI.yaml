@@ -1,0 +1,216 @@
+---
+openapi: 3.0.0
+info:
+  title: Event Tracker
+  description: This is an API specification for a demo microservices application.
+  version: 1.0.0
+  contact:
+    name: Jason Hawthorne
+    email: jhawthor@colsa.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+- url: "{protocol}://eventtracker.net"
+  variables:
+    environment:
+      default: api
+      enum:
+      - api
+      - api.dev
+      - api.staging
+    protocol:
+      default: https
+      enum:
+      - http
+      - https
+paths:
+  "/events/create":
+    post:
+      summary: Add a new event
+      description: Add new network event to the log.
+      responses:
+        '201':
+          description: Created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Event"
+  "/events":
+    get:
+      tags:
+      - event
+      summary: Gets all events
+      description: Returns a list of network events with associated comments
+      operationId: getEvents
+      parameters: []
+      responses:
+        '200':
+          description: A JSON formatted list of network events with each event having
+            an array of associated comments
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Events"
+  "/events/{id}/comments":
+    post:
+      tags:
+      - comment
+      summary: Adds a comment
+      description: Adds a comment to a specific event
+      operationId: createComment
+      parameters:
+      - name: id
+        in: path
+        description: ID of the event the comment will be associated with
+        required: true
+        schema:
+          type: string
+          format: string
+      responses:
+        '202':
+          description: Comment has been submitted for moderation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/PostComment"
+components:
+  schemas:
+    Events:
+      type: object
+      properties:
+        id:
+          description: Event ID
+          type: string
+          format: string
+        eventTime:
+          description: The time the Network Event occurred.
+          type: string
+          format: date-time
+        location:
+          description: The physical location of the Network Event. i.e BLDG 222
+          type: string
+          format: string
+        network:
+          description: The Network affected by the event.
+          type: string
+          format: string
+        details:
+          description: Brief description of the network event. i.e Cannot access email...
+          type: string
+          format: string
+        reportedBy:
+          description: The network technician that logged the event
+          type: string
+          format: string
+        comments:
+          description: Array of network event associated comments
+          type: array
+          enum:
+          - "$ref": "#/components/schemas/Comments"
+      example:
+        c9476828:
+          id: c9476828
+          eventTime: 11/15/2020 11:00 PM
+          location: BLdg 222
+          network: SIPR
+          details: Network Outage
+          reportedBy: CPT Morgan
+          comments:
+          - id: ff738e1f
+            content: Spillage occurred
+            status: approved
+          - id: ab215a34
+            content: Spillage has been cleaned as of 11/16/2020 02:30 AM
+            status: approved
+        1b813e8d:
+          id: 1b813e8d
+          eventTime: 11/12/2020 10:59:59
+          location: Bldg 3000
+          network: NIPR
+          details: Cannot access the Internet
+          reportedBy: Johnny Walker
+          comments: []
+    Comments:
+      description: Comment form a Network Manager
+      type: object
+      properties:
+        id:
+          description: Comment ID
+          type: string
+          format: string
+        eventId:
+          description: Event ID
+          type: string
+          format: string
+        content:
+          description: The time the Network Event occurred.
+          type: string
+          format: string
+        status:
+          description: The status of the comment under moderation.
+          type: string
+          enum:
+          - under moderation
+          - approved
+          - rejected
+      example:
+        content: Spillage occurred
+        eventId: c9476828
+    PostComment:
+      description: A comment from a Network Manager
+      type: object
+      properties:
+        eventId:
+          description: Event ID
+          type: string
+          format: string
+        content:
+          description: The time the Network Event occurred.
+          type: string
+          format: string
+      required:
+      - content
+      - eventId
+      example:
+        content: Spillage occurred
+        eventId: c9476828
+    Event:
+      type: object
+      properties:
+        eventTime:
+          description: The time the Network Event occurred.
+          type: string
+          format: date-time
+        location:
+          description: The physical location of the Network Event. i.e BLDG 222
+          type: string
+          format: string
+        network:
+          description: The Network affected by the event.
+          type: string
+          format: string
+        details:
+          description: Brief description of the network event. i.e Cannot access email...
+          type: string
+          format: string
+        reportedBy:
+          description: The network technician that logged the event
+          type: string
+          format: string
+      required:
+      - eventTime
+      - location
+      - network
+      - details
+      - reportedBy
+      example:
+        eventTime: 11/15/2020 11:00 PM
+        location: BLdg 222
+        network: SIPR
+        details: Network Outage
+        reportedBy: CPT Morgan
